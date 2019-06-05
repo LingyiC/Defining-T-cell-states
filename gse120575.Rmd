@@ -1,0 +1,149 @@
+---
+title: "GSE120575"
+author: "Lingyi"
+date: "6/3/2019"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(
+  cache = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  cache.lazy = FALSE)
+
+dataPath   <- "./GSE120575Data/"
+outPath <- "./output/"
+
+library(data.table)
+library(Seurat)
+library(cowplot)     
+library(RColorBrewer)
+library(limma)
+library(dplyr)
+library(readxl)
+```
+```{r}
+data <- fread("./GSE120575Data/GSE120575_Sade_Feldman_melanoma_single_cells_TPM_GEO.txt", sep="\t", header = TRUE, fill = TRUE)
+data.frame <- as.data.frame(data)
+rname <- data.frame[, 1]
+df <- data.frame[, -1]
+row.names(df) <- rname
+```
+
+# Three quality control (QC) measures
+For each cell, we used three quality control (QC) measures. We excluded: 
+(1) cells with a zero expression of both CD45 and CD3E; 
+(2) cells expressing less than 1000 genes; 
+(3) cells with an average expression of housekeeping genes (Table S6), log2(TPM+1) < 2.5. For downstream analysis, we focused on protein coding genes (Table S6), out of which, we used the set of genes with expression levels log2(TPM+1) > 4.5 in at least 10 cells per sample or genes with a particularly high expression level (log2(TPM+1) > 12) in one or more cells, per sample.
+```{r}
+# (1) cells with a zero expression of both CD45 and CD3E
+# why choose this two genes 
+# Actually, we don't have gene CD45
+
+df["CD3E",]
+```
+
+```{r}
+# (2) cells expressing less than 1000 genes
+# create seurat 
+
+# dfob <- CreateSeuratObject(counts = df, project = "GSE120575", min.cells = 1, min.features = 1000)
+# dfob
+```
+
+```{r}
+# (3) cells with an average expression of housekeeping genes (Table S6)
+S6 <- read_excel("./GSE120575Data/tableS6.xlsx", sheet="Protein coding genes-methods")
+S6 <- unlist(S6, use.names=FALSE)
+df <- df[S6, ]
+```
+
+# Analysis 
+## Identify individual markers associated with response and lack of response. 
+Method: 'Differential expression analysis' part
+Data: gene expression values of 6,350 CD8+ T cells (cell ID's found in Table S2)
+Truth: Table S2
+```{r}
+# prepare the data: gene expression values of 6,350 CD8+ T cells
+S2 <- read_excel("./GSE120575Data/tableS2.xlsx", sheet="Cluster annotation-Fig2A-B")
+S2.Tcell <- S2[, 1]
+S2.Tcell <- unlist(S2.Tcell, use.names=FALSE)
+df.Tcell <- df[, S2.Tcell]
+```
+
+```{r}
+head(df.Tcell)
+```
+
+***
+```{r}
+annot <- fread("./GSE120575Data/GSE120575_patient_ID_single_cells.txt", sep="\t", skip = 18, header = TRUE, fill = TRUE)
+# data.frame <- as.data.frame(data)
+# rname <- data.frame[, 1]
+# df <- data.frame[, -1]
+# row.names(df) <- rname
+# 
+# sfannot <- read.csv(paste0(dataPath, "GSE120575_patient_ID_single_cells.csv"), stringsAsFactors = F)
+# row.names(sfannot) <- sfannot$title
+# sfannot <- sfannot[colnames(sfMat), ]
+# 
+# all(row.names(sfannot) == colnames(sfMat))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+# first2rows <- fread("./GSE120575Data/GSE120575_Sade_Feldman_melanoma_single_cells_TPM_GEO.txt")
+# data <- fread("./GSE120575Data/GSE120575_Sade_Feldman_melanoma_single_cells_TPM_GEO.txt", skip=2)
+# first2row <- first2row[,-1]
+# first2row <- data.table(New = c(1:2), first2row)
+sf_test <- data[1:3, 1:4]
+# 
+# # Subset data to only Pre-treated
+# rnames <- sf[,1]
+# ss <- subset(
+#   sf,
+#   subset = rep(TRUE, nrow(sf)),
+#   select = grepl("Pre", sf[1,]))
+# 
+# dim(ss)  ## 55738  5928
+# 
+# # Remove first row from data
+# ss <- subset(
+#   ss,
+#   subset = c(FALSE, rep(TRUE, (nrow(ss)-1))),
+#   select = rep(TRUE, ncol(ss)))
+# 
+# ssdf <- as.data.frame(ss)
+# row.names(ssdf) <- rnames$V1
+# 
+# rnames <- row.names(ssdf)
+# ssdf <- apply(ssdf, 2, as.numeric)
+# row.names(ssdf) <- rnames
+# sfMat <- as.matrix(ssdf)
+# 
+# # Save data for future use
+# saveRDS(ssdf,
+#   paste0(dataPath, "GSE120575_Sade_Feldman_melanoma_single_cells_TPM_Pre_Treated.RDS"))
+```
+
