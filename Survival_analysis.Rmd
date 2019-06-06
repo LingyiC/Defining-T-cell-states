@@ -1,0 +1,66 @@
+---
+title: "survival_analysis"
+author: "Lingyi"
+date: "6/6/2019"
+output: html_document
+---
+
+```{r}
+# Survival Analysis
+# Kaplan-Meier Method
+# https://www.datacamp.com/community/tutorials/survival-analysis-R
+library(survival)
+library(survminer)
+library(dplyr)
+```
+
+```{r}
+# split samples into two groups 
+S1 <- read_excel("./GSE120575Data/tableS3.xlsx", sheet="Lesion-Fig3")[1:43, 1:5]
+great1 <- S1[which(S1$`CD8+TCF7+/CD8+TCF7- ratio` >1),]
+small1 <- S1[which(S1$`CD8+TCF7+/CD8+TCF7- ratio` < 1),]
+```
+
+```{r}
+great <- c("P36", "P38", "P39", "P41", "P43", "P46", "P47", "P52", "P53", "P56", "P57", "P59", "P62", "P63", "P65", "P69")
+small <- c("P37", "P40", "P42", "P44", "P45", "P49", "P50", "P51", "P54", "P55", "P58", "P60", "P61", "P64", "P66", "P67", "P68")
+```
+
+
+```{r}
+sur <- read_excel("./GSE120575Data/tableS3.xlsx", sheet="Patient-Fig3", skip=1)[1:33,]
+```
+
+```{r}
+sur[, 2] == great
+```
+
+
+```{r}
+a <- sapply(great, function(x) grep(x, sur$`Patient ID`))
+surgreat <- sur[a, ] 
+b <- sapply(small, function(x) grep(x, sur$`Patient ID`))
+sursmall <- sur[b, ] 
+```
+
+
+```{r}
+surv_object_great <- Surv(time = as.numeric(surgreat$`Overall survival (days)`), event = as.numeric(surgreat$`Status (Alive=0; Dead=1)`))
+fit1 <- survfit(surv_object_great ~ Therapy, data = surgreat)
+summary(fit1)
+```
+
+```{r}
+surv_object_small <- Surv(time = as.numeric(sursmall$`Overall survival (days)`), event = as.numeric(sursmall$`Status (Alive=0; Dead=1)`))
+fit2 <- survfit(surv_object_small ~ Therapy, data = sursmall)
+summary(fit2)
+```
+
+```{r, fig.width=9,fig.height=5}
+fit <- list(greater_than_1 = fit1, smaller_than_1 = fit2)
+ggsurvplot(fit, data = sur, combine = TRUE, linetype=1, xlab="Days", legend.title="CD8+TCF7+/CD8+TCF7- ratio: ")
+# ggsurvplot(fit1, data = surgreat, linetype = "strata", pval = TRUE)
+# ggsurvplot(fit2, data = sursmall, pval = TRUE)
+```
+
+
