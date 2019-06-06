@@ -23,12 +23,31 @@ library(limma)
 library(dplyr)
 library(readxl)
 ```
+
 ```{r}
 data <- fread("./GSE120575Data/GSE120575_Sade_Feldman_melanoma_single_cells_TPM_GEO.txt", sep="\t", header = TRUE, fill = TRUE)
 data.frame <- as.data.frame(data)
 rname <- data.frame[, 1]
-df <- data.frame[, -1]
-row.names(df) <- rname
+dfAll <- data.frame[, -1]
+row.names(dfAll) <- rname
+```
+```{r}
+head(dfAll)
+```
+
+```{r}
+head(dfAll)
+```
+```{r}
+anno <- read_excel("./GSE120575Data/GSE120575_patient_ID_single_cells.xlsx", sheet="GSE120575_patient_ID_single_cells")
+
+Responder <- filter(anno,  Post_onTreatment == "Responder") # 1455
+unique(Responder$patinet_ID)
+```
+
+```{r}
+NonResponder <- filter(anno,  Post_onTreatment == "Non-responder") # 1455
+unique(NonResponder$patinet_ID)
 ```
 
 # Three quality control (QC) measures
@@ -40,23 +59,26 @@ For each cell, we used three quality control (QC) measures. We excluded:
 # (1) cells with a zero expression of both CD45 and CD3E
 # why choose this two genes 
 # Actually, we don't have gene CD45
-
-df["CD3E",]
+df["CD45",]
 ```
 
 ```{r}
 # (2) cells expressing less than 1000 genes
 # create seurat 
-
-# dfob <- CreateSeuratObject(counts = df, project = "GSE120575", min.cells = 1, min.features = 1000)
+# dfob <- CreateSeuratObject(counts = df, project = "GSE120575")
 # dfob
 ```
 
 ```{r}
 # (3) cells with an average expression of housekeeping genes (Table S6)
 S6 <- read_excel("./GSE120575Data/tableS6.xlsx", sheet="Protein coding genes-methods")
-S6 <- unlist(S6, use.names=FALSE)
-df <- df[S6, ]
+S6.genes <- unlist(S6, use.names=FALSE)
+df <- dfAll[S6.genes, ]
+dfAll$V16293 <- NULL
+```
+
+```{r}
+head(df)
 ```
 
 # Analysis 
@@ -64,6 +86,7 @@ df <- df[S6, ]
 Method: 'Differential expression analysis' part
 Data: gene expression values of 6,350 CD8+ T cells (cell ID's found in Table S2)
 Truth: Table S2
+
 ```{r}
 # prepare the data: gene expression values of 6,350 CD8+ T cells
 S2 <- read_excel("./GSE120575Data/tableS2.xlsx", sheet="Cluster annotation-Fig2A-B")
@@ -73,8 +96,149 @@ df.Tcell <- df[, S2.Tcell]
 ```
 
 ```{r}
-head(df.Tcell)
+clusters <- unlist(S1.cluster[,1],  use.names=FALSE)
 ```
+
+### Classify G1 & G2 
+```{r}
+S1.cluster
+```
+
+```{r}
+# dont have to run again
+library(writexl)
+# S1.cluster <- read_excel("./GSE120575Data/tableS1.xlsx", sheet="Cluster annotation-Fig1B-C")
+# S1.cluster[, 1] <- colnames(dfAll)
+write_xlsx(S1.cluster, "./GSE120575Data/tableS1.xlsx")
+```
+
+```{r}
+# Find G1 
+S1.cluster <- read_excel("./GSE120575Data/cluster.xlsx", sheet="Sheet1")
+
+cluster_1 <- filter(S1.cluster, Cluster_number == 1) # 1455
+cluster_1 <- unlist(cluster_1[, 1],  use.names=FALSE)
+#common <- intersect(cluster_1, colnames(df))  
+G1 <- select(df, cluster_1) 
+
+# Find G2
+cluster_2 <- filter(S1.cluster, Cluster_number == 2) # 305 
+cluster_2 <- unlist(cluster_2[, 1],  use.names=FALSE)
+#common <- intersect(cluster_2, colnames(df))  
+G2 <- select(dfAll, cluster_2)
+```
+
+
+
+### 
+```{r}
+
+```
+
+### Classify CD8_G & CD8_B
+```{r}
+# two clusters G1: CD8_G, G2: CD8_B
+S2 <- read_excel("./GSE120575Data/tableS2.xlsx", sheet="Cluster annotation-Fig2A-B")
+CD8_G <- filter(S2, Cluster == "CD8_G") # 3327
+CD8_G <- unlist(CD8_G[, 1],  use.names=FALSE)
+df.CD8_G <- select(df.Tcell, CD8_G)
+
+CD8_B <- filter(S2, Cluster == "CD8_B") # 3032 
+CD8_B <- unlist(CD8_B[, 1],  use.names=FALSE)
+df.CD8_B <- select(df.Tcell, CD8_B)
+```
+
+
+
+### Compute fisher matrix 
+```{r}
+# For G1
+FMatrix.function <- function(gene){
+  A <- dim(G1[, G1[gene,]>2])[2]
+  B <- dim(G2[, G2[gene,]>2])[2]
+  C <- dim(G1[, G1[gene,]<=2])[2]
+  D <- dim(G2[, G2[gene,]<=2])[2]
+
+  mean_G1 <- mean(as.numeric(G1[gene,]))
+  mean_G2 <- mean(as.numeric(G2[gene,]))
+  FMatrix <- matrix(c(A, B, C, D), nrow = 2, dimnames = list(c("G1","G2"), c("log2(TPM+1)>2","log2(TPM+1)<=2")))
+  p <- fisher.test(FMatrix)[["p.value"]]
+  print(FMatrix)
+  print(mean_G1)
+  print(mean_G2)
+  p.adjust(p, method = "bonferroni", n = length(p))
+}
+```
+
+
+```{r}
+G1["CD38",]
+```
+
+```{r}
+FMatrix.function("STMN1")
+```
+
+
+
+```{r}
+# For G1
+FMatrix.function <- function(gene){
+  A <- dim(df.CD8_B[, df.CD8_B[gene,]>2])[2]
+  B <- dim(df.CD8_G[, df.CD8_G[gene,]>2])[2]
+  C <- dim(df.CD8_B[, df.CD8_B[gene,]<=2])[2]
+  D <- dim(df.CD8_G[, df.CD8_G[gene,]<=2])[2]
+  mean_G1 <- mean(as.numeric(df.CD8_B[gene,]))
+  mean_G2 <- mean(as.numeric(df.CD8_G[gene,]))
+  FMatrix <- matrix(c(A, B, C, D), nrow = 2, dimnames = list(c("G1","G2"), c("log2(TPM+1)>2","log2(TPM+1)<=2")))
+  p <- fisher.test(FMatrix)[["p.value"]]
+  print(p)
+  print(sprintf("Mean expression G1: %f", mean_G1))
+  print(sprintf("Mean expression G2: %f", mean_G2))
+  # p.adjust(p, method = "bonferroni", n = length(p))
+}
+```
+
+```{r}
+FMatrix.function("CD38")
+```
+
+
+
+
+```{r}
+lapply(S6.genes, FMatrix.function)
+```
+
+
+
+```{r}
+A <- dim(df.CD8_G[, df.CD8_G["A1BG",]>2])[2]
+B <- dim(df.CD8_B[, df.CD8_B["A1BG",]>2])[2]
+C <- dim(df.CD8_G[, df.CD8_G["A1BG",]<=2])[2]
+D <- dim(df.CD8_B[, df.CD8_B["A1BG",]<=2])[2]
+FMatrix <- matrix(c(A, B, C, D), nrow = 2, dimnames = list(c("G1","G2"),c("log2(TPM+1)>2","log2(TPM+1)<=2")))
+p <- fisher.test(FMatrix)[["p.value"]]
+p.adjust(p, method = "bonferroni", n = length(p))
+```
+
+```{r}
+1455+305+1391+290+265+2222+1740+2165+1656+1773+1129
+```
+
+```{r}
+dim(df.CD8_G[, df.CD8_G["A1BG",]<=2])
+```
+
+```{r}
+dim(df.CD8_B[, df.CD8_B["A1BG",]>2])
+```
+```{r}
+a <- c("A1BG","A1CF", "A2M")
+typeof(a)
+```
+
+
 
 ***
 ```{r}
@@ -102,6 +266,9 @@ annot <- fread("./GSE120575Data/GSE120575_patient_ID_single_cells.txt", sep="\t"
 
 
 
+```{r}
+max(df)
+```
 
 
 
