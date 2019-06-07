@@ -1,4 +1,5 @@
-# Defining T Cell States Associated with Response to Checkpoint Immunotherapy in Melanoma
+# Replication of results: Defining T Cell States Associated with Response to Checkpoint Immunotherapy in Melanoma
+> [Article link](https://www.sciencedirect.com/science/article/pii/S0092867418313941#mmc1)
 ## 1. Identify individual markers associated with response and lack of response. 
 **Method:** 'Differential expression analysis' part
 
@@ -22,7 +23,7 @@
 ### 3.1 Clustering of immune cells 
 **Method:** 'Unsupervised clustering of immune cells' parts
 
-**Data:** Using all genes with variance > 6, yielding ∼4000 genes.
+**Data:** Using all genes with variance > 6, yielding ∼4000 genes.  /Results/clusterData.csv
 
 **Truth:** Table S1, S2, S4
 
