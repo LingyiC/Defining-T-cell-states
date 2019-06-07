@@ -1,0 +1,144 @@
+---
+title: "Clustering"
+author: "Lingyi"
+date: "6/6/2019"
+output: html_document
+---
+```{r}
+knitr::opts_chunk$set(
+  cache = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  cache.lazy = FALSE)
+
+dataPath   <- "./GSE120575Data/"
+outPath <- "./output/"
+
+library(data.table)
+library(dplyr)
+library(readxl)
+```
+
+```{r}
+data <- fread("./GSE120575Data/GSE120575_Sade_Feldman_melanoma_single_cells_TPM_GEO.txt", sep="\t", header = TRUE, fill = TRUE)
+data.frame <- as.data.frame(data)
+rname <- data.frame[, 1]
+dfAll <- data.frame[, -1]
+row.names(dfAll) <- rname
+dfAll$V16293 <- NULL
+```
+
+```{r}
+S6 <- read_excel("./GSE120575Data/tableS6.xlsx", sheet="Protein coding genes-methods")
+S6.genes <- unlist(S6, use.names=FALSE)
+df <- dfAll[S6.genes, ]
+```
+
+Find genes with variance > 6
+```{r}
+# around 40min to run 
+index <- which(sapply(S6.genes, function(x) var(as.numeric(df[x,]))>6))
+```
+
+```{r}
+clu <- df[index, ]
+write.csv(clu, file = "./GSE120575Data/clusterData.csv")
+```
+
+```{r}
+test <- t(clu[1:1000, 1:100])
+```
+
+
+## To determine the optimal number of clusters 
+(1) examined how much of the complexity each cluster captures by applying the elbow method 
+Select the solutions that are near plateau (k = 10,..., 15)
+
+```{r}
+Data <- read.csv(file="./GSE120575Data/clusterData.csv", header=TRUE, sep=",")
+genes <- Data[, 1]
+rownames(Data) <- genes
+Data <- Data[, -1]
+```
+
+```{r}
+clu <- t(Data)
+```
+
+```{r, fig.width=7, fig.height=5}
+wss <- 0
+# Initialize total within sum of squares error: wss
+# For 1 to 15 cluster centers
+for (i in 3:15) {
+  km.out <- kmeans(clu, centers = i, nstart = 1)
+  # Save total within sum of squares to wss variable
+  wss[i] <- km.out$tot.withinss
+}
+
+# Plot total within sum of squares vs. number of clusters
+plot(3:15, wss[3:15], type = "b", 
+     xlab = "Number of Clusters", 
+     ylab = "Within groups sum of squares")
+# Set k equal to the number of clusters corresponding to the elbow location
+# k <- 2  # 3 is probably OK, too
+```
+
+```{r}
+# cluster cells 
+# elbow method 
+wss <- 0
+
+plot(1:15, unlist(wss, use.names = FALSE),
+     type="b", pch = 19, frame = FALSE, 
+     xlab="Number of clusters K",
+     ylab="Total within-clusters sum of squares")
+```
+
+(2) performed differentical expression anlysis to search for gene markers that are siginificatly more highly expressed in a specific cluster as compared to all other clusters 
+(excluded solutions with clusters that have too few marker genes (< 20) distinguishing between them and the rest of the cells. )
+
+```{r}
+# FMatrix.RNR <- function(gene){
+#   A <- length(which(as.numeric(dfR[gene,]) > 2))
+#   B <- length(which(as.numeric(dfNR[gene,])>2))
+#   C <- length(which(as.numeric(dfR[gene,]) <= 2))
+#   D <- length(which(as.numeric(dfNR[gene,]) <= 2))
+#   mean_G1 <- mean(as.numeric(dfR[gene,]))
+#   mean_G2 <- mean(as.numeric(dfNR[gene,]))
+#   perR <- (A / (A+C))
+#   perNR <- (B / (B+D))
+#   FMatrix <- matrix(c(A, B, C, D), nrow = 2, dimnames = list(c("G1","G2"), c("log2(TPM+1)>2","log2(TPM+1)<=2")))
+#   p <- fisher.test(FMatrix)[["p.value"]]
+#   p
+#   compute <- log2(mean_G1/mean_G2)
+#   out <- data.frame("p_value" = p, "mean_exp_in_R" = mean_G1, "mean_exp_in_NR" = mean_G2, 
+#                     "per_in_R" = perR, "per_in_NR" = perNR, "log2_R_NR_" = log2(mean_G1/mean_G2))
+#   out
+# }
+```
+
+(3) Finally, we performed a robustness analysis and selected the clustering solution with the highest median robustness score.
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
