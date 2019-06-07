@@ -45,8 +45,7 @@ Determine the optimal number of clusters
 
 Examined how much of the complexity each cluster captures by applying the elbow method 
 Select the solutions that are near plateau (k = 10,..., 15)
-Small data example:
-![alt text](https://i.ibb.co/R0nkFFg/image.png)
+![alt text](https://i.ibb.co/nzXN8rB/image.png)
 
 - **Step 2** Performed differentical expression
 
