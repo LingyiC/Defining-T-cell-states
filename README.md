@@ -19,14 +19,35 @@
 ![alt text](https://i.ibb.co/y67Xzxv/image.png)
 
 ## 3. Clustering of cells
-### 3.1 immune cells 
+### 3.1 Clustering of immune cells 
 **Method:** 'Unsupervised clustering of immune cells' parts
 
-**Data:** gene expression matrix
+**Data:** Using all genes with variance > 6, yielding ∼4000 genes.
 
 **Truth:** Table S1, S2, S4
 
 **Results:**
+Determine the optimal number of clusters
+- **Step 1** Applied the elbow method
 
-### 3.2 T cells
+Examined how much of the complexity each cluster captures by applying the elbow method 
+Select the solutions that are near plateau (k = 10,..., 15)
+![alt text]()
 
+- **Step 2** Performed differentical expression
+
+Performed differentical expression anlysis to search for gene markers that are siginificatly more highly expressed in a specific cluster as compared to all other clusters (excluded solutions with clusters that have too few marker genes (< 20) distinguishing between them and the rest of the cells.)
+
+- **Step 3** Robustness analysis
+
+Finally, we performed a robustness analysis and selected the clustering solution with the highest median robustness score.
+
+### 3.2 Clustering of T cells
+
+**Method:** 'Unsupervised clustering of T cells' parts
+
+**Data:** Using all genes with variance > 6, yielding ∼4000 genes.
+
+**Truth:** Table S1, S2, S4
+
+**Results:**
