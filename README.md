@@ -1,4 +1,4 @@
-# Defining-T-cell-states
+# Defining T Cell States Associated with Response to Checkpoint Immunotherapy in Melanoma
 ## 1. Identify individual markers associated with response and lack of response. 
 **Method:** 'Differential expression analysis' part
 
@@ -18,11 +18,15 @@
 **Results:** Kaplan-Meier survival curve for 33 patients treated with anti-PD-1 therapy. Patients were divided into two groups based on TCF7+CD8+/TCF7−CD8+ ratio (n = 16 > 1; n = 17 < 1) from IF.
 ![alt text](https://i.ibb.co/y67Xzxv/image.png)
 
-## 3. Clustering of (i) immune cells and (ii) T cells
-**Method:** 'Unsupervised clustering of immune/CD8 T cells' parts
+## 3. Clustering of cells
+### 3.1 immune cells 
+**Method:** 'Unsupervised clustering of immune cells' parts
 
 **Data:** gene expression matrix
 
 **Truth:** Table S1, S2, S4
 
 **Results:**
+
+### 3.2 T cells
+
