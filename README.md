@@ -6,6 +6,8 @@
 
 **Truth:** Table S2
 
+**Results:** /Results/pvalueSort.csv
+
 ## 2. Survival analysis of TCF7+CD8+ in clinical outcome anti-PD-1 therapy
 **Method:** 'Survival analysis' part
 
@@ -13,5 +15,14 @@
 
 **Truth:** Figure. 3H  
 
-Kaplan-Meier survival curve for 33 patients treated with anti-PD-1 therapy. Patients were divided into two groups based on TCF7+CD8+/TCF7−CD8+ ratio (n = 16 > 1; n = 17 < 1) from IF.
+**Results:** Kaplan-Meier survival curve for 33 patients treated with anti-PD-1 therapy. Patients were divided into two groups based on TCF7+CD8+/TCF7−CD8+ ratio (n = 16 > 1; n = 17 < 1) from IF.
 ![alt text](https://i.ibb.co/y67Xzxv/image.png)
+
+## 3. Clustering of (i) immune cells and (ii) T cells
+**Method:** 'Unsupervised clustering of immune/CD8 T cells' parts
+
+**Data:** gene expression matrix
+
+**Truth:** Table S1, S2, S4
+
+**Results:**
