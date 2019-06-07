@@ -1,6 +1,6 @@
 # Replication of results: Defining T Cell States Associated with Response to Checkpoint Immunotherapy in Melanoma
 > [Article link](https://www.sciencedirect.com/science/article/pii/S0092867418313941#mmc1)
-## 1. Identify individual markers associated with response and lack of response. 
+## 1. Identify individual markers associated with response and lack of response 
 **Method:** 'Differential expression analysis' part
 
 **Data:** 'GSE120575_Sade_Feldman_melanoma_single_cells_TPM_GEO.txt', Gene expression values of 6,350 CD8+ T cells (cell ID's found in Table S2)
@@ -31,7 +31,7 @@ head(pvalueSort)
 **Results:** Kaplan-Meier survival curve for 33 patients treated with anti-PD-1 therapy. Patients were divided into two groups based on TCF7+CD8+/TCF7−CD8+ ratio (n = 16 > 1; n = 17 < 1) from IF.
 ![alt text](https://i.ibb.co/y67Xzxv/image.png)
 
-## 3. Clustering of cells (Unfinished)
+## 3. Clustering of cells (stopped finding the optimal number of clusters)
 ### 3.1 Clustering of immune cells 
 **Method:** 'Unsupervised clustering of immune cells' parts
 
@@ -45,6 +45,7 @@ Determine the optimal number of clusters
 
 Examined how much of the complexity each cluster captures by applying the elbow method 
 Select the solutions that are near plateau (k = 10,..., 15)
+Small data example:
 ![alt text](https://i.ibb.co/R0nkFFg/image.png)
 
 - **Step 2** Performed differentical expression
